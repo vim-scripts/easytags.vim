@@ -37,6 +37,12 @@ Additionally if the file you just opened is a C, Lua, PHP, Python or Vim
 source file you should also notice that the function and type names defined in
 the file have been syntax highlighted.
 
+If the plug-in warns you that 'ctags' isn't installed you can download it
+from its homepage [2], or if you're running Debian/Ubuntu you can install it
+by executing the following shell command:
+>
+    sudo apt-get install exuberant-ctags
+
 ==============================================================================
 Configuration
 
@@ -102,7 +108,7 @@ pathnames, which means your tags file will only contain entries with canonical
 pathnames [10]. To enable this option (which I strongly suggest doing when you
 run UNIX and use symbolic links) execute the following Vim command:
 >
-    :let easytags_resolve_links = 1
+    :let g:easytags_resolve_links = 1
 
 ==============================================================================
 Troubleshooting

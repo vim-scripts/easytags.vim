@@ -1,21 +1,26 @@
-if !exists('timer_enabled')
-	let timer_enabled = 0
+" Vim script
+" Maintainer: Peter Odding <peter@peterodding.com>
+" Last Change: June 6, 2010
+" URL: http://peterodding.com/code/vim/profile/autoload/xolox/timer.vim
+
+if !exists('g:timer_enabled')
+	let g:timer_enabled = 0
 endif
 
-if !exists('timer_verbose_level')
-	let timer_verbose_level = 1
+if !exists('g:timer_verbosity')
+	let g:timer_verbosity = 1
 endif
 
 function! xolox#timer#start()
-	if g:timer_enabled || &verbose >= g:timer_verbose_level
+	if g:timer_enabled || &verbose >= g:timer_verbosity
 		return reltime()
 	endif
 	return []
 endfunction
 
 function! xolox#timer#stop(start, message)
-	let duration = reltimestr(reltime(a:start))
-	let duration = substitute(duration, '^\s*\(.\{-}\)\s*$', '\1', '')
-	let level = g:timer_enabled ? 0 : g:timer_verbose_level
-	call xolox#message(level, a:message, duration)
+	if g:timer_enabled || &verbose >= g:timer_verbosity
+  	let duration = xolox#trim(reltimestr(reltime(a:start)))
+  	call xolox#message(a:message, duration)
+  endif
 endfunction

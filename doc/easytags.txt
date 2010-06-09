@@ -15,7 +15,7 @@ Vim supports syntax highlighting for over 500 file types [5] (!) and Exuberant
 Ctags can generate tags for over 40 file types [6] as well...
 
 There's just one problem: You have to manually keep your tags files
-up-to-date and this turns about to be a royal pain in the ass! So I set out to
+up-to-date and this turns out to be a royal pain in the ass! So I set out to
 write a Vim plug-in that would do this boring work for me. When I finished the
 plug-in's basic functionality (one automatic command and a call to 'system()')
 I became interested in dynamic syntax highlighting, so I added that as well to
@@ -142,10 +142,10 @@ If you like this plug-in please vote for it on www.vim.org [11].
 ==============================================================================
 License
 
-This software is licensed under the MIT license [12].  
+This software is licensed under the MIT license [12].
 © 2010 Peter Odding <peter@peterodding.com>.
 
-============================================================================== 
+==============================================================================
 References
 
 [1] http://www.vim.org/
@@ -154,7 +154,7 @@ References
 [4] http://en.wikipedia.org/wiki/Ctags
 [5] http://ftp.vim.org/vim/runtime/syntax/
 [6] http://ctags.sourceforge.net/languages.html
-[7] http://github.com/downloads/xolox/vim-easytags/easytags-latest.zip
+[7] http://peterodding.com/code/vim/download.php?script=easytags
 [8] http://en.wikipedia.org/wiki/Symbolic_link
 [9] http://en.wikipedia.org/wiki/Hard_link
 [10] http://en.wikipedia.org/wiki/Canonicalization

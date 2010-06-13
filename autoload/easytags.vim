@@ -1,6 +1,6 @@
 " Vim script
 " Maintainer: Peter Odding <peter@peterodding.com>
-" Last Change: June 13, 2010
+" Last Change: June 14, 2010
 " URL: http://peterodding.com/code/vim/easytags
 
 " Public interface through (automatic) commands. {{{1
@@ -11,6 +11,7 @@ function! easytags#autoload() " {{{2
     let pathname = s:resolve(expand('%:p'))
     let tags_outdated = getftime(pathname) > getftime(easytags#get_tagsfile())
     if tags_outdated || !easytags#file_has_tags(pathname)
+      let update_active = 1
       UpdateTags
     endif
     " Apply highlighting of tags in global tags file to current buffer?
@@ -25,7 +26,9 @@ function! easytags#autoload() " {{{2
           endif
         endfor
       endif
-      let b:easytags_last_highlighted = localtime()
+      if !exists('update_active')
+        let b:easytags_last_highlighted = localtime()
+      endif
     endif
   catch
     call xolox#warning("easytags.vim: %s (at %s)", v:exception, v:throwpoint)
@@ -67,10 +70,11 @@ function! easytags#update_cmd(filter_invalid_tags) " {{{2
       if ft_supported && !ft_ignored
         call add(command, '--language-force=' . easytags#to_ctags_ft(&ft))
         call add(command, shellescape(filename))
-        let listing = system(join(command))
-        if v:shell_error
-          throw "Failed to update tags file! (Ctags output: `" . listing . "')"
-        endif
+        try
+          call xolox#shell#execute(join(command))
+        catch
+          throw "Failed to update tags file! (" . v:exception . ")"
+        endtry
         call easytags#add_tagged_file(filename)
       endif
       call xolox#timer#stop(start, "easytags.vim: Updated tags in %s second(s)")
@@ -246,8 +250,13 @@ endfunction
 function! s:cache_tagged_files() " {{{2
   if !exists('s:tagged_files')
     let tagsfile = easytags#get_tagsfile()
-    let [header, entries] = easytags#read_tagsfile(tagsfile)
-    call s:set_tagged_files(entries)
+    try
+      let [header, entries] = easytags#read_tagsfile(tagsfile)
+      call s:set_tagged_files(entries)
+    catch /\<E484\>/
+      " Ignore missing tags file.
+      call s:set_tagged_files([])
+    endtry
   endif
 endfunction
 

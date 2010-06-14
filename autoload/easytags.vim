@@ -11,7 +11,6 @@ function! easytags#autoload() " {{{2
     let pathname = s:resolve(expand('%:p'))
     let tags_outdated = getftime(pathname) > getftime(easytags#get_tagsfile())
     if tags_outdated || !easytags#file_has_tags(pathname)
-      let update_active = 1
       UpdateTags
     endif
     " Apply highlighting of tags in global tags file to current buffer?
@@ -26,9 +25,7 @@ function! easytags#autoload() " {{{2
           endif
         endfor
       endif
-      if !exists('update_active')
-        let b:easytags_last_highlighted = localtime()
-      endif
+      let b:easytags_last_highlighted = localtime()
     endif
   catch
     call xolox#warning("easytags.vim: %s (at %s)", v:exception, v:throwpoint)
@@ -70,11 +67,10 @@ function! easytags#update_cmd(filter_invalid_tags) " {{{2
       if ft_supported && !ft_ignored
         call add(command, '--language-force=' . easytags#to_ctags_ft(&ft))
         call add(command, shellescape(filename))
-        try
-          call xolox#shell#execute(join(command))
-        catch
-          throw "Failed to update tags file! (" . v:exception . ")"
-        endtry
+        let listing = system(join(command))
+        if v:shell_error
+          throw "Failed to update tags file! (Ctags output: `" . listing . "')"
+        endif
         call easytags#add_tagged_file(filename)
       endif
       call xolox#timer#stop(start, "easytags.vim: Updated tags in %s second(s)")

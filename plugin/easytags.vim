@@ -9,10 +9,6 @@
 " Support for automatic update using the GLVS plug-in.
 " GetLatestVimScripts: 3114 1 :AutoInstall: easytags.zip
 
-" TODO Add easytags#scan_files(files[]), make :UpdateTags /usr/include/lua5.1/*.h work.
-" TODO Extract tags file filtering and ctags execution from easytags#update_cmd()
-" TODO Move tag file parsing to autoload script
-
 " Don't source the plug-in when its already been loaded or &compatible is set.
 if &cp || exists('g:loaded_easytags')
   finish

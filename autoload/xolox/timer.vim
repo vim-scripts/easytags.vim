@@ -1,6 +1,6 @@
 " Vim script
 " Maintainer: Peter Odding <peter@peterodding.com>
-" Last Change: June 15, 2010
+" Last Change: June 16, 2010
 " URL: http://peterodding.com/code/vim/profile/autoload/xolox/timer.vim
 
 if !exists('g:timer_enabled')
@@ -50,7 +50,7 @@ function! xolox#timer#format_timespan(ts)
   if seconds < 5
     let extract = matchstr(a:ts, '^\d\+\(\.0*[123456789][123456789]\?\)\?')
     if extract =~ '[123456789]'
-      return extract . ' second' . (seconds > 1 ? 's' : '')
+      return extract . ' second' . (extract != '1' ? 's' : '')
     endif
   endif
 
@@ -60,7 +60,7 @@ function! xolox#timer#format_timespan(ts)
     if seconds >= size
       let counter = seconds / size
       let seconds = seconds % size
-      let suffix = counter > 1 ? 's' : ''
+      let suffix = counter != 1 ? 's' : ''
       call add(result, printf('%i %s%s', counter, name, suffix))
     endif
   endfor

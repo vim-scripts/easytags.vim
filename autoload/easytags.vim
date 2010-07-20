@@ -1,7 +1,7 @@
 " Vim script
-" Maintainer: Peter Odding <peter@peterodding.com>
-" Last Change: July 10, 2010
-" URL: http://peterodding.com/code/vim/easytags
+" Author: Peter Odding <peter@peterodding.com>
+" Last Change: July 20, 2010
+" URL: http://peterodding.com/code/vim/easytags/
 
 let s:script = expand('<sfile>:p:~')
 
@@ -46,7 +46,9 @@ function! easytags#update_cmd(filter_invalid_tags) " {{{2
       let start = xolox#timer#start()
       let tagsfile = easytags#get_tagsfile()
       let command = [g:easytags_cmd, '-f', shellescape(tagsfile), '--fields=+l']
-      if filereadable(tagsfile)
+      if !filereadable(tagsfile)
+        call add(command, '--sort=' . (&ic ? 'foldcase' : 'yes'))
+      else
         call add(command, '-a')
         let filter_file_tags = update_tags && easytags#file_has_tags(filename)
         if a:filter_invalid_tags || filter_file_tags
@@ -76,7 +78,7 @@ function! easytags#update_cmd(filter_invalid_tags) " {{{2
         let listing = system(join(command))
         if v:shell_error
           let msg = "Failed to update tags file %s: %s!"
-          throw printf(msg, fnamemodify(tagsfile, ':~'), strtrans(v:exception))
+          throw printf(msg, fnamemodify(tagsfile, ':~'), strtrans(listing))
         endif
         call easytags#add_tagged_file(filename)
         let msg = "%s: Updated tags for %s in %s."
@@ -149,8 +151,8 @@ function! easytags#supported_filetypes() " {{{2
     endif
     let s:supported_filetypes = split(listing, '\n')
     call map(s:supported_filetypes, 'easytags#to_vim_ft(v:val)')
-    let msg = "%s: Retrieved supported languages in %s."
-    call xolox#timer#stop(msg, s:script, start)
+    let msg = "%s: Retrieved %i supported languages in %s."
+    call xolox#timer#stop(msg, s:script, len(s:supported_filetypes), start)
   endif
   return s:supported_filetypes
 endfunction
@@ -281,6 +283,8 @@ function! s:cache_tagged_files() " {{{2
 endfunction
 
 function! s:set_tagged_files(entries) " {{{2
+  " TODO use taglist() instead of readfile() so that all tag files are
+  " automatically used :-)
   let s:tagged_files = {}
   for entry in a:entries
     let filename = matchstr(entry, '^[^\t]\+\t\zs[^\t]\+')

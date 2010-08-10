@@ -1,6 +1,6 @@
 " Vim script
 " Maintainer: Peter Odding <peter@peterodding.com>
-" Last Change: July 21, 2010
+" Last Change: August 10, 2010
 " URL: http://peterodding.com/code/vim/profile/autoload/xolox.vim
 
 " Miscellaneous functions used throughout my Vim profile and plug-ins.
@@ -46,11 +46,17 @@ function! xolox#unique(list) " -- remove duplicate values from {list} (in-place)
 endfunction
 
 function! xolox#message(...) " -- show a formatted informational message to the user {{{1
-	return s:message('title', a:000)
+	call s:message('title', a:000)
 endfunction
 
 function! xolox#warning(...) " -- show a formatted warning message to the user {{{1
-	return s:message('warningmsg', a:000)
+	call s:message('warningmsg', a:000)
+endfunction
+
+function! xolox#debug(...) " -- show a formatted debugging message to the user {{{1
+  if &vbs >= 1
+	  call s:message('question', a:000)
+  endif
 endfunction
 
 function! s:message(hlgroup, args) " -- implementation of message() and warning() {{{1

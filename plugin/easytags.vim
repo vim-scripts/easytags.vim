@@ -1,10 +1,10 @@
 " Vim plug-in
 " Author: Peter Odding <peter@peterodding.com>
-" Last Change: February 24, 2011
+" Last Change: May 23, 2011
 " URL: http://peterodding.com/code/vim/easytags/
 " Requires: Exuberant Ctags (http://ctags.sf.net)
 " License: MIT
-" Version: 2.2
+" Version: 2.2.9
 
 " Support for automatic update using the GLVS plug-in.
 " GetLatestVimScripts: 3114 1 :AutoInstall: easytags.zip
@@ -16,14 +16,28 @@ endif
 
 let s:script = expand('<sfile>:p:~')
 
+" Make sure the submodule with miscellaneous auto-load scripts is available.
+try
+  call xolox#misc#os#is_win()
+catch /^Vim\%((\a\+)\)\=:E117/
+  let s:msg = "It looks like the easytags plug-in wasn't correctly installed, if you're using"
+  let s:msg .= " git you should probably use 'git clone --recursive ...' to clone the repository!"
+  echoerr s:msg
+  finish
+endtry
+
 " Configuration defaults and initialization. {{{1
 
 if !exists('g:easytags_file')
-  if has('win32') || has('win64')
+  if xolox#misc#os#is_win()
     let g:easytags_file = '~\_vimtags'
   else
     let g:easytags_file = '~/.vimtags'
   endif
+endif
+
+if !exists('g:easytags_dynamic_files')
+  let g:easytags_dynamic_files = 0
 endif
 
 if !exists('g:easytags_resolve_links')
@@ -84,9 +98,13 @@ function! s:CheckCtags(name, version)
       " to throw an error when the first one doesn't!
       return
     endtry
-    let pattern = 'Exuberant Ctags \zs\d\+\(\.\d\+\)*'
+    let pattern = 'Exuberant Ctags \zs\(\d\+\(\.\d\+\)*\|Development\)'
     let g:easytags_ctags_version = matchstr(listing, pattern)
-    return s:VersionToNumber(g:easytags_ctags_version) >= a:version
+    if g:easytags_ctags_version == 'Development'
+      return 1
+    else
+      return s:VersionToNumber(g:easytags_ctags_version) >= a:version
+    endif
   endif
 endfunction
 
@@ -100,6 +118,9 @@ function! s:VersionToNumber(s)
 endfunction
 
 if !s:InitEasyTags(55)
+  if exists('g:easytags_suppress_ctags_warning') && g:easytags_suppress_ctags_warning
+    finish
+  endif
   if !exists('g:easytags_ctags_version') || empty(g:easytags_ctags_version)
     let s:msg = "%s: Plug-in not loaded because Exuberant Ctags isn't installed!"
     if executable('apt-get')
@@ -122,7 +143,7 @@ endif
 function! s:RegisterTagsFile()
   " Parse the &tags option and get a list of all tags files *including
   " non-existing files* (this is why we can't just call tagfiles()).
-  let tagfiles = xolox#option#split_tags(&tags)
+  let tagfiles = xolox#misc#option#split_tags(&tags)
   let expanded = map(copy(tagfiles), 'resolve(expand(v:val))')
   " Add the filename to the &tags option when the user hasn't done so already.
   if index(expanded, resolve(expand(g:easytags_file))) == -1
@@ -133,10 +154,10 @@ function! s:RegisterTagsFile()
     " this is a bug in Vim is to type :set tags= then press <Tab> followed by
     " <CR>. Now you entered the exact same value that the code below also did
     " but suddenly Vim sees the tags file and tagfiles() != [] :-S
-    call insert(tagfiles, g:easytags_file)
-    let value = xolox#option#join_tags(tagfiles)
-    let cmd = ':set tags=' . escape(value, '\ ')
-    if has('win32') || has('win64')
+    call add(tagfiles, g:easytags_file)
+    let value = xolox#misc#option#join_tags(tagfiles)
+    let cmd = 'set tags=' . escape(value, '\ ')
+    if xolox#misc#os#is_win() && v:version < 703
       " TODO How to clear the expression from Vim's status line?
       call feedkeys(":" . cmd . "|let &ro=&ro\<CR>", 'n')
     else
@@ -145,24 +166,30 @@ function! s:RegisterTagsFile()
   endif
 endfunction
 
-" Let Vim know about the global tags file created by this plug-in.
+" The plug-in initializes the &tags option as soon as possible so that the
+" global tags file is available when using "vim -t some_tag". If &tags is
+" reset, we'll try again on the "VimEnter" automatic command event (below).
 call s:RegisterTagsFile()
 
 " The :UpdateTags and :HighlightTags commands. {{{1
 
-command! -bar -bang -nargs=* -complete=file UpdateTags call easytags#update(0, <q-bang> == '!', [<f-args>])
-command! -bar HighlightTags call easytags#highlight()
+command! -bar -bang -nargs=* -complete=file UpdateTags call xolox#easytags#update(0, <q-bang> == '!', [<f-args>])
+command! -bar HighlightTags call xolox#easytags#highlight()
 
 " Automatic commands. {{{1
 
 augroup PluginEasyTags
   autocmd!
+  " This is the alternative way of registering the global tags file using
+  " the automatic command event "VimEnter". Apparently this makes the
+  " plug-in behave better when used together with tplugin?
+  autocmd VimEnter * call s:RegisterTagsFile()
   if g:easytags_always_enabled
     " TODO Also on FocusGained because tags files might be updated externally?
-    autocmd BufReadPost,BufWritePost * call easytags#autoload()
+    autocmd BufReadPost,BufWritePost * call xolox#easytags#autoload()
   endif
   if g:easytags_on_cursorhold
-    autocmd CursorHold,CursorHoldI * call easytags#autoload()
+    autocmd CursorHold,CursorHoldI * call xolox#easytags#autoload()
     autocmd BufReadPost * unlet! b:easytags_last_highlighted
   endif
 augroup END

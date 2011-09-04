@@ -1,9 +1,9 @@
 " Vim script
 " Author: Peter Odding <peter@peterodding.com>
-" Last Change: August 31, 2011
+" Last Change: September 4, 2011
 " URL: http://peterodding.com/code/vim/easytags/
 
-let g:xolox#easytags#version = '2.5'
+let g:xolox#easytags#version = '2.5.3'
 
 " Public interface through (automatic) commands. {{{1
 
@@ -34,8 +34,12 @@ function! xolox#easytags#register(global) " {{{2
   endif
 endfunction
 
-function! xolox#easytags#autoload() " {{{2
+function! xolox#easytags#autoload(event) " {{{2
   try
+    " Check for unreasonable &updatetime values.
+    if a:event =~? 'cursorhold' && &updatetime < 4000
+      call xolox#misc#msg#warn("easytags.vim %s: I'm being executed every %i milliseconds! Please set the 'updatetime' option to >= 4000 (4 seconds). To find where 'updatetime' was changed execute ':verbose set updatetime?'", g:xolox#easytags#version, &updatetime)
+    endif
     let do_update = xolox#misc#option#get('easytags_auto_update', 1)
     let do_highlight = xolox#misc#option#get('easytags_auto_highlight', 1) && &eventignore !~? '\<syntax\>'
     " Don't execute this function for unsupported file types (doesn't load
@@ -243,8 +247,10 @@ function! s:find_tagged_files(entries) " {{{3
   let tagged_files = {}
   for entry in a:entries
     let filename = s:canonicalize(entry[1])
-    if !has_key(tagged_files, filename)
-      let tagged_files[filename] = 1
+    if filename != ''
+      if !has_key(tagged_files, filename)
+        let tagged_files[filename] = 1
+      endif
     endif
   endfor
   return tagged_files
@@ -466,7 +472,8 @@ function! xolox#easytags#write_tagsfile(tagsfile, headers, entries) " {{{2
     call extend(lines, a:headers)
     call extend(lines, a:entries)
   endif
-  return writefile(lines, a:tagsfile) == 0
+  let tempname = a:tagsfile . '.easytags.tmp'
+  return writefile(lines, tempname) == 0 && rename(tempname, a:tagsfile) == 0
 endfunction
 
 function! s:join_entry(value)
@@ -512,7 +519,10 @@ endfunction
 
 function! s:cache_tagged_files_in(fname, ftime, entries) " {{{3
   for entry in a:entries
-    let s:tagged_files[s:canonicalize(entry[1])] = 1
+    let filename = s:canonicalize(entry[1])
+    if filename != ''
+      let s:tagged_files[filename] = 1
+    endif
   endfor
   let s:known_tagfiles[a:fname] = a:ftime
 endfunction
@@ -607,13 +617,16 @@ function! s:resolve(filename) " {{{2
 endfunction
 
 function! s:canonicalize(filename) " {{{2
-  if has_key(s:cached_filenames, a:filename)
-    return s:cached_filenames[a:filename]
+  if a:filename != ''
+    if has_key(s:cached_filenames, a:filename)
+      return s:cached_filenames[a:filename]
+    endif
+      let canonical = s:resolve(fnamemodify(a:filename, ':p'))
+      let s:cached_filenames[a:filename] = canonical
+      return canonical
+    endif
   endif
-    let canonical = s:resolve(fnamemodify(a:filename, ':p'))
-    let s:cached_filenames[a:filename] = canonical
-    return canonical
-  endif
+  return ''
 endfunction
 
 let s:cached_filenames = {}

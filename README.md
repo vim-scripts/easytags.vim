@@ -8,11 +8,7 @@ There's just one problem: You have to manually keep your tags files up-to-date a
 
 ## Installation
 
-*Please note that the vim-easytags plug-in requires my vim-misc plug-in which is separately distributed.*
-
-Unzip the most recent ZIP archives of the [vim-easytags] [download-easytags] and [vim-misc] [download-misc] plug-ins inside your Vim profile directory (usually this is `~/.vim` on UNIX and `%USERPROFILE%\vimfiles` on Windows), restart Vim and execute the command `:helptags ~/.vim/doc` (use `:helptags ~\vimfiles\doc` instead on Windows).
-
-If you prefer you can also use [Pathogen] [pathogen], [Vundle] [vundle] or a similar tool to install and update the [vim-easytags] [github-easytags] and [vim-misc] [github-misc] plug-ins using a local clone of the git repository.
+Please refer to the [installation instructions] [howto-install] available on GitHub.
 
 Now try it out: Edit any file type supported by Exuberant Ctags and within ten seconds the plug-in should create/update your tags file (`~/.vimtags` on UNIX, `~/_vimtags` on Windows) with the tags defined in the file you just edited! This means that whatever file you're editing in Vim (as long as it's on the local file system), tags will always be available by the time you need them!
 
@@ -125,7 +121,9 @@ By default `:UpdateTags` only writes to the global tags file, but it can be conf
 
 You can change the name of the tags file, the important thing is that it's relative to your working directory or the buffer (using a leading `./`). When `g:easytags_dynamic_files` is set to 1 the easytags plug-in will write to the first existing tags file seen by Vim (based on the ['tags' option] [tags_opt]). In other words: If a project specific tags file is found it will be used, otherwise the plug-in falls back to the global tags file (or a file type specific tags file).
 
-If you set `g:easytags_dynamic_files` to 2 the easytags plug-in will automatically create project specific tags based on the first name in the 'tags' option. In this mode the the global tags file or file type specific tags files are only used for directories where you don't have write permissions.
+If you set `g:easytags_dynamic_files` to 2 the easytags plug-in will automatically create a project specific tags file based on the first name in the ['tags' option] [tags_opt]. In this mode the global tags file and/or file type specific tags files are only used for directories where you don't have write permissions.
+
+When you set `g:easytags_dynamic_files` to 2 new tags files are created in the same directory as the file you're editing. If you want the tags files to be created in your working directory instead then change Vim's ['cpoptions' option] [cpoptions] to include the lowercase letter 'd'.
 
 The ['tags' option] [tags_opt] is reevaluated each time the plug-in runs, so which tags file is selected can differ depending on the buffer and working directory.
 
@@ -155,7 +153,7 @@ By default the plug-in automatically generates and highlights tags when you stop
 
     :let g:easytags_always_enabled = 1
 
-Be warned that after setting this option you'll probably notice why it's disabled by default: Every time you edit a file in Vim, the plug-in will first run Exuberant Ctags and then highlight the tags, and this slows Vim down quite a lot. I have some ideas on how to improve this latency by running Exuberant Ctags in the background so stay tuned!
+Be warned that after setting this option you'll probably notice why it's disabled by default: Every time you edit a file in Vim, the plug-in will first run Exuberant Ctags and then highlight the tags, and this slows Vim down quite a lot. To make this less of a problem you can use the `g:easytags_async` option.
 
 Note: If you change this option it won't apply until you restart Vim, so you'll have to set this option in your [vimrc script] [vimrc].
 
@@ -183,11 +181,15 @@ By default the plug-in automatically updates and highlights your tags when you s
 
     :let g:easytags_auto_update = 0
 
+This disables all _automatic_ tags file updates (regardless of how they were enabled) where automatic means _initiated by a Vim automatic command_.
+
 ### The `g:easytags_auto_highlight` option
 
 By default the plug-in automatically updates and highlights your tags when you stop typing for a moment. If you want to disable automatic highlighting while keeping automatic updating enabled you can set this option to false:
 
     :let g:easytags_auto_highlight = 0
+
+This disables all _automatic_ tags highlighting (regardless of how it was enabled) where automatic means _initiated by a Vim automatic command_.
 
 ### The `g:easytags_autorecurse` option
 
@@ -360,6 +362,7 @@ Thanks go out to everyone who has helped to improve the vim-easytags plug-in (wh
 [98]: https://github.com/xolox/vim-easytags/issues/98
 [canon]: http://en.wikipedia.org/wiki/Canonicalization
 [code_complete]: http://www.vim.org/scripts/script.php?script_id=1764
+[cpoptions]: http://vimdoc.sourceforge.net/htmldoc/options.html#'cpoptions'
 [ctags]: http://en.wikipedia.org/wiki/Ctags
 [ctags_cfg]: http://ctags.sourceforge.net/ctags.html#FILES
 [ctags_fts]: http://ctags.sourceforge.net/languages.html
@@ -368,19 +371,15 @@ Thanks go out to everyone who has helped to improve the vim-easytags plug-in (wh
 [cursorhold]: http://vimdoc.sourceforge.net/htmldoc/autocmd.html#CursorHold
 [cygwin]: http://en.wikipedia.org/wiki/Cygwin
 [dll]: http://en.wikipedia.org/wiki/Dynamic-link_library
-[download-easytags]: http://peterodding.com/code/vim/downloads/easytags.zip
-[download-misc]: http://peterodding.com/code/vim/downloads/misc.zip
 [e339]: http://vimdoc.sourceforge.net/htmldoc/message.html#E339
 [exctags]: http://ctags.sourceforge.net/
-[github-easytags]: http://github.com/xolox/vim-easytags
-[github-misc]: http://github.com/xolox/vim-misc
 [hlinks]: http://en.wikipedia.org/wiki/Hard_link
+[howto-install]: https://github.com/xolox/vim-easytags/blob/master/INSTALL.md
 [ide]: http://en.wikipedia.org/wiki/Integrated_development_environment
 [jsctags]: https://npmjs.org/package/jsctags
 [localtime]: http://vimdoc.sourceforge.net/htmldoc/eval.html#localtime()
 [messages]: http://vimdoc.sourceforge.net/htmldoc/message.html#:messages
 [neocomplcache]: http://www.vim.org/scripts/script.php?script_id=2620
-[pathogen]: http://www.vim.org/scripts/script.php?script_id=2332
 [shell]: http://peterodding.com/code/vim/shell/
 [slinks]: http://en.wikipedia.org/wiki/Symbolic_link
 [syn_groups]: http://vimdoc.sourceforge.net/htmldoc/syntax.html#group-name
@@ -393,4 +392,3 @@ Thanks go out to everyone who has helped to improve the vim-easytags plug-in (wh
 [vim_fts]: http://ftp.vim.org/vim/runtime/syntax/
 [vim_online]: http://www.vim.org/scripts/script.php?script_id=3114
 [vimrc]: http://vimdoc.sourceforge.net/htmldoc/starting.html#vimrc
-[vundle]: https://github.com/gmarik/vundle
